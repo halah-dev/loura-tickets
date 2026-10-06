@@ -1,0 +1,28 @@
+services:
+  api:
+    build: .
+    ports:
+      # Override the host port if 8080 is taken: PORT=9000 docker compose up
+      - "${PORT:-8080}:8080"
+    volumes:
+      # Named volume, so stopping and starting the stack exercises the restart
+      # path: tickets that were pending when the container died are still
+      # pending, and get picked up again.
+      - tickets-data:/app/data
+    environment:
+      # Nothing secret here. A real provider key would arrive the same way,
+      # from the environment, and is why there is no key anywhere in the repo.
+      - TZ=UTC
+    # SIGTERM reaches the process directly (ENTRYPOINT is exec form), so
+    # `docker compose stop` exercises graceful shutdown rather than a kill.
+    stop_grace_period: 15s
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+    restart: unless-stopped
+
+volumes:
+  tickets-data:

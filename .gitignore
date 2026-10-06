@@ -1,0 +1,5 @@
+# The database is local state, never committed.
+*.db
+*.db-wal
+*.db-shm
+/server
